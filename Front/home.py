@@ -17,12 +17,14 @@ def init_setting():
 
 
 def notification():
-    if st.button("공지사항"):
-        switch_page("notification")
+    noti_col, _ = st.columns([5,5])
+    with noti_col:
+        if st.button("공지사항"):
+            switch_page("notification")
 
 
 def user_select():
-    user_list = ['사용자 선택', 'A', 'B', 'C']
+    user_list = ['사용자 선택', 'CHW_MyCar',  'HSK_MyCar', 'JJK', 'KBH', 'KHY', 'KYJ', 'LHS', 'MJH', 'MJH_MyCar', 'OSM']
     
     user = st.selectbox(
         label='user_select', 

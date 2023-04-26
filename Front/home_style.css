@@ -16,9 +16,13 @@ iframe {
 }
 
 /* st.button */
-div.row-widget.stButton > button {
-    width: 150px;
+div[data-testid="stHorizontalBlock"] div.row-widget.stButton > button {
+    width: 150px !important;
 }
 
-.stMultiSelect div div div div div:nth-of-type(2) {visibility: hidden;}
-.stMultiSelect div div div div div:nth-of-type(2)::before {visibility: visible; content:"카테고리 선택";}
+div.row-widget.stButton > button {
+    width: 255px;
+}
+
+/* .stMultiSelect div div div div div:nth-of-type(2) {visibility: hidden;}
+.stMultiSelect div div div div div:nth-of-type(2)::before {visibility: visible; content:"카테고리 선택";} */

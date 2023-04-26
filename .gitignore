@@ -131,3 +131,8 @@ dmypy.json
 *.out
 key
 review.json
+*.pt
+*.swp
+model.py
+predict.py
+users

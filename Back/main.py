@@ -8,6 +8,11 @@ from typing import Any, Optional
 with open(os.path.join(os.path.dirname(__file__), 'key'), 'r', encoding='utf-8') as file:
     PRIVATE_KEY = file.read()
 
+
+class User(BaseModel):
+    user: str
+
+
 class Query(BaseModel):
     query: str
 
@@ -18,12 +23,13 @@ class Coord(BaseModel):
 
 
 class RecUserInfo(BaseModel):
-    user: int
+    user: str
     ca: int
     lat: float
     lng: float
     repeat: bool
     mode: str
+    negatives: list
 
 
 class ItemRating(BaseModel):
@@ -132,8 +138,13 @@ def get_user_negatives(user):
     with open(file_path, 'r', encoding='utf-8') as file:
         user_reviews = json.load(file)
 
-    if str(user) in user_reviews.keys(): return user_reviews[str(user)]['user_negatives']
+    if user in user_reviews.keys(): return user_reviews[user]['user_negatives']
     else: return []
+
+
+@app.post("/negatives/")
+def user_negatives(data: User):
+    return get_user_negatives(data.user)
 
 
 @app.post("/rec/")
@@ -148,7 +159,7 @@ def rec(data: RecUserInfo):
         'ca': data.ca,
         'repeat': data.repeat,
         'mode': data.mode,
-        'user_negatives': get_user_negatives(data.user)
+        'user_negatives': data.negatives
     }
     print('*' * 10)
     print(info)

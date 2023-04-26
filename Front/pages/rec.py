@@ -16,11 +16,6 @@ def init_setting():
     return stx.CookieManager()
 
 
-# def star_rating(idx, height):
-#     with open(os.path.join(os.path.dirname(__file__), f'star{idx}_rating.html')) as f:
-#         components.html(f.read(), height=height)
-
-
 @st.cache_data(show_spinner='Wait...')
 def do_rec(data, time):
     rec_list = requests.post(url=f'http://141.223.163.115:8000/rec/', json=data).json()
@@ -28,8 +23,7 @@ def do_rec(data, time):
 
 
 def get_data_dict(cookie_manager):
-    user = 1 # cookie_manager.get('user')
-
+    user = cookie_manager.get('user')
     categories = cookie_manager.get('categories')
     if categories == '전체': ca = 0
     elif categories == '교통편의': ca = 1
@@ -40,8 +34,8 @@ def get_data_dict(cookie_manager):
         st.write('Not supported category')
 
     algo = cookie_manager.get('algo')
-    if algo == '반복 POI 추천': repeat = True
-    elif algo == '신규 POI 추천': repeat = False
+    if algo == '방문한 곳 포함 장소 추천 받기': repeat = True
+    elif algo == '방문한적 없는 새로운 장소 추천 받기': repeat = False
     else:
         repeat = True 
         st.write('Not supported algo.')
@@ -50,13 +44,16 @@ def get_data_dict(cookie_manager):
     lng = cookie_manager.get('lng') # 127.486930
     mode = cookie_manager.get('mode')
 
+    negatives = requests.post(url=f'http://141.223.163.115:8000/negatives/', json={'user': user}).json()
+
     data = {
         'user': user,
         'ca': ca,
         'lat': lat,
         'lng': lng,
         'repeat': repeat,
-        'mode': mode
+        'mode': mode,
+        'negatives': negatives,
         }
 
     return data
@@ -70,49 +67,54 @@ def display_rec_list(rec_list):
         with st.container():
             item_name_col, star_col = st.columns([8, 2])
             _, idx_col1, idx_col2 = st.columns([0.3, 5, 5])
-            _, idx_col3 = st.columns([0.3, 10])
             with item_name_col:
                 city_place = f"{rec_list['top_item_city_names'][i]} {rec_list['top_item_names'][i]}"
                 st.write(f"{i+1}. [{city_place}](<https://map.naver.com/v5/search/{city_place}>)")
             with star_col:
                 star_ratings[i] = st_star_rating(label='', maxValue=5, defaultValue=3, size=20, key=f"rating{i+1}")
-                # star_rating(i+1, 27)
             with idx_col1:
                 st.write(f"거리: {rec_list['top_item_distances'][i]} km")
             with idx_col2:
                 st.write(f"추천 점수: {rec_list['top_item_scores'][i]}")
-            with idx_col3:
-                st.write(f"추천 이유: {rec_list['top_item_descriptors'][i]}")
             
-            low_reasons[i] = st.text_area(
-                label=f'item{i+1}', 
-                placeholder="별점이 낮은 이유는 무엇인가요?",
-                label_visibility='collapsed')
+            if star_ratings[i] <= 2:
+                _, idx_col3, idx_col4 = st.columns([0.3, 5, 5])
+                with idx_col3:
+                    st.write('별점이 낮은 이유는 무엇인가요?')
+                with idx_col4:
+                    low_reasons[i] = st.text_input(
+                        label=f'item{i+1}', 
+                        # placeholder="별점이 낮은 이유는 무엇인가요?",
+                        label_visibility='collapsed')
             st.markdown('---')
 
     return star_ratings, low_reasons
 
 
 def display_review():
-    keep_using_text, keep_using_check = st.columns([7,3])
+    keep_using_text, _, keep_using_check = st.columns([6, 1, 3])
+    negatives_text, negative_1, negative_2, negative_3, negative_4, negative_5 = st.columns([9, 1, 1, 1, 1, 1])
+    negatives_item = [negative_1, negative_2, negative_3, negative_4, negative_5]
+    user_negatives_list = [False] * 5
+
     with keep_using_text: st.write("실제 서비스로 나올 경우 계속 쓸 용의가 있는가요?")
     with keep_using_check:
         keep_using = st.selectbox(
             label='keep_using', 
             options=['Y', 'N'],
             label_visibility="collapsed")
-
-    not_rec_cand = (1, 2, 3, 4, 5)
-    user_negatives_list = st.multiselect(
-        label="not_rec", 
-        options=not_rec_cand,
-        label_visibility="collapsed")
+        
+    with negatives_text: st.write('추천 장 소 중 향후 추천이 안되길 바라는 장소는?')
+    for i in range(5):
+        with negatives_item[i]: user_negatives_list[i] = st.checkbox(f'{i+1}')
+    
+    st.write('전반적인 추천 결과에 대한 의견은?')
     
     opinion = st.text_area(
         label="opinion",
-        placeholder="전반적인 추천 결과에 대한 의견은?",
+        # placeholder="전반적인 추천 결과에 대한 의견은?",
         label_visibility="collapsed",
-    )
+        )
     
     return keep_using, user_negatives_list, opinion
 
@@ -125,13 +127,14 @@ def main():
         if st.button("홈"): switch_page("home")
     with descriptor_col:
         with open(os.path.join(os.path.dirname(__file__), f'star_descriptor.html')) as f:
-                components.html(f.read(), height=158)
+                components.html(f.read(), height=160)
     with open(os.path.join(os.path.dirname(__file__), 'rec_style.css')) as f:
         st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
-    data = get_data_dict(cookie_manager)    
+    data = get_data_dict(cookie_manager) 
     rec_list = do_rec(data, time.time() // 3600,)
 
+    st.write(rec_list['top_item_descriptor'])
     star_ratings, low_reasons = display_rec_list(rec_list)
     keep_using, user_negatives_list, opinion = display_review()
 
@@ -153,7 +156,7 @@ def main():
         'algo': data['repeat'],
         'item_ratings': item_ratings,
         'keep_using': keep_using,
-        'user_negatives': [rec_list['top_items'][int(i)-1] for i in user_negatives_list],
+        'user_negatives': [rec_list['top_items'][i] for i in range(5) if user_negatives_list[i] is True],
         'opinion': opinion,
     }
 
