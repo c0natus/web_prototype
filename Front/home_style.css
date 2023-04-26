@@ -1,0 +1,24 @@
+[data-testid="collapsedControl"] {
+    display: none
+}
+
+[data-testid="stToolbar"] {
+    display: none
+}
+
+iframe {
+    display: none;
+}
+
+/* st.write */
+.css-j5r0tf {
+    align-items: center;
+}
+
+/* st.button */
+div.row-widget.stButton > button {
+    width: 150px;
+}
+
+.stMultiSelect div div div div div:nth-of-type(2) {visibility: hidden;}
+.stMultiSelect div div div div div:nth-of-type(2)::before {visibility: visible; content:"카테고리 선택";}

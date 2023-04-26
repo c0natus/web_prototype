@@ -1,0 +1,11 @@
+[data-testid="collapsedControl"] {
+    display: none;
+}
+
+/* st.button */
+div.row-widget.stButton > button {
+    width: 150px;
+}
+
+.stMultiSelect div div div div div:nth-of-type(2) {visibility: hidden;}
+.stMultiSelect div div div div div:nth-of-type(2)::before {visibility: visible; content:"추천을 원하지 않는 장소 (1~5)";}
