@@ -1,5 +1,5 @@
 import os
-import time
+import time, datetime
 import requests
 import streamlit as st
 import streamlit.components.v1 as components
@@ -168,14 +168,48 @@ def check_and_change_page(user, categories, algo, mode, cookie_manager):
         switch_page('rec')
 
 
-def rec_dest(user, categories, algo, cookie_manager):
-    if st.button('거리 제한 없이 POI 추천 받기', key='dest'):
-        check_and_change_page(user, categories, algo, 'default', cookie_manager)
+def rec_dest(user, categories, algo, cookie_manager, change_page_container):
+    with change_page_container:
+        if st.button('거리 제한 없이 POI 추천 받기', key='dest'):
+            check_and_change_page(user, categories, algo, 'default', cookie_manager)
 
 
-def rec_near(user, categories, algo, cookie_manager):
-    if st.button('주변 (현위치<5km) POI 추천 받기', key='near'):
-        check_and_change_page(user, categories, algo, 'near', cookie_manager)
+def rec_near(user, categories, algo, cookie_manager, change_page_container):
+    with change_page_container:
+        if st.button('주변 (현위치<5km) POI 추천 받기', key='near'):
+            check_and_change_page(user, categories, algo, 'near', cookie_manager)
+
+
+def time_select():
+    time_list = ['현재 시간', '시간 선택']
+
+    time_type = st.selectbox(
+        label='algo_select',
+        options=time_list,
+        label_visibility="collapsed")
+    
+    date = year = month = day = hour = None
+    if time_type == '시간 선택':
+        col_date_str, col_date, _, col_hour_str, col_hour = st.columns([1, 3, 1, 1, 3])
+        with col_date_str: st.write('날짜')
+        with col_date: 
+            date = st.date_input(label='date', label_visibility='collapsed')
+            year = date.year
+            month = date.month
+            day = date.day
+        with col_hour_str: st.write('시간')
+        with col_hour:
+            hour = st.number_input(label='hour', key='hour', min_value=0, max_value=23, step=1, label_visibility='collapsed')
+
+    time_info = {
+        'time_type': time_type,
+        'year': year,
+        'month': month,
+        'day': day,
+        'hour': hour,
+    }
+
+    return time_info
 
 
 def main():
@@ -186,14 +220,18 @@ def main():
     user = user_select()
     categories = categories_select()
     algo = algo_select()
+    time_info = time_select()
     get_location(cookie_manager)
+
+    change_page_container = st.container()
 
     cookie_manager.set('user', user, key='user')
     cookie_manager.set(cookie='categories', val=categories, key='categories')
     cookie_manager.set('algo', algo, key='algo')
+    cookie_manager.set('time_info', time_info, key='time_info')
 
-    rec_dest(user, categories, algo, cookie_manager)
-    rec_near(user, categories, algo, cookie_manager)
+    rec_dest(user, categories, algo, cookie_manager, change_page_container)
+    rec_near(user, categories, algo, cookie_manager, change_page_container)
 
 
 main()

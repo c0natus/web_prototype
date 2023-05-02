@@ -30,6 +30,7 @@ class RecUserInfo(BaseModel):
     repeat: bool
     mode: str
     negatives: list
+    time_info: Optional[dict] = None
 
 
 class ItemRating(BaseModel):
@@ -111,9 +112,7 @@ def conver_func_coords_to_add(lat, lng):
     }
 
     response = requests.get(url, headers=header, params=params).json()
-    print('*'*30)
-    print(lat, lng, response)
-    print('*'*30)   
+
     try:
         address_name = response['documents'][0]['road_address']['address_name']
         building_name = response['documents'][0]['road_address']['building_name']
@@ -159,11 +158,18 @@ def rec(data: RecUserInfo):
         'ca': data.ca,
         'repeat': data.repeat,
         'mode': data.mode,
-        'user_negatives': data.negatives
+        'user_negatives': data.negatives,
+        'time_info': data.time_info
     }
+    # print('*' * 10)
+    # print(info)
+    # print('*' * 10)
+
     print('*' * 10)
-    print(info)
+    for time_key, time_value in info['time_info'].items():
+        print(time_key, time_value, type(time_key), type(time_value))
     print('*' * 10)
+
     rec_list = predict.main(info)
     top_item_city_names = []
     for i in range(len(rec_list['top_item_coors'])):
@@ -177,7 +183,6 @@ def rec(data: RecUserInfo):
 
 @app.post("/review/")
 def review(data: Review):
-    print(data)
     user = data.user
     categories = data.categories
     lat = data.lat

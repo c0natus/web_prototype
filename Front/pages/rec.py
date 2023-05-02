@@ -43,6 +43,7 @@ def get_data_dict(cookie_manager):
     lat = cookie_manager.get('lat') # 36.621677
     lng = cookie_manager.get('lng') # 127.486930
     mode = cookie_manager.get('mode')
+    time_info = cookie_manager.get('time_info')
 
     negatives = requests.post(url=f'http://141.223.163.115:8000/negatives/', json={'user': user}).json()
 
@@ -54,12 +55,14 @@ def get_data_dict(cookie_manager):
         'repeat': repeat,
         'mode': mode,
         'negatives': negatives,
+        'time_info': time_info,
         }
 
     return data
 
 
 def display_rec_list(rec_list):
+    st.write(rec_list['top_item_descriptor'])
     st.markdown('---')
     star_ratings = [None] * 5
     low_reasons = [None] * 5
@@ -119,8 +122,7 @@ def display_review():
     return keep_using, user_negatives_list, opinion
 
 
-def main():
-    cookie_manager = init_setting()
+def rec_page_header():
     title_col, _, descriptor_col = st.columns([4, 0.5, 5])
     with title_col:
         st.header("추천 결과 확인")
@@ -131,13 +133,8 @@ def main():
     with open(os.path.join(os.path.dirname(__file__), 'rec_style.css')) as f:
         st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
-    data = get_data_dict(cookie_manager) 
-    rec_list = do_rec(data, time.time() // 3600,)
 
-    st.write(rec_list['top_item_descriptor'])
-    star_ratings, low_reasons = display_rec_list(rec_list)
-    keep_using, user_negatives_list, opinion = display_review()
-
+def make_review_data(data, rec_list, star_ratings, low_reasons, keep_using, opinion, user_negatives_list):
     item_ratings = {}
     for i in range(5):
         item_ratings[rec_list['top_items'][i]] = {
@@ -146,7 +143,7 @@ def main():
             'distance': rec_list['top_item_distances'][i],
             'low_reason': low_reasons[i],
         }
-
+    
     review_data = {
         'user': data['user'],
         'categories': data['ca'],
@@ -159,6 +156,21 @@ def main():
         'user_negatives': [rec_list['top_items'][i] for i in range(5) if user_negatives_list[i] is True],
         'opinion': opinion,
     }
+
+    return review_data
+
+
+def main():
+    cookie_manager = init_setting()
+    rec_page_header()
+
+    data = get_data_dict(cookie_manager) 
+    rec_list = do_rec(data, time.time() // 3600,)
+
+    star_ratings, low_reasons = display_rec_list(rec_list)
+    keep_using, user_negatives_list, opinion = display_review()
+    review_data = make_review_data(
+        data, rec_list, star_ratings, low_reasons, keep_using, opinion, user_negatives_list)
 
     if st.button('제출하기'):
         result = requests.post(url='http://141.223.163.115:8000/review/', json=review_data).json()
