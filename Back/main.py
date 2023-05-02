@@ -161,13 +161,9 @@ def rec(data: RecUserInfo):
         'user_negatives': data.negatives,
         'time_info': data.time_info
     }
-    # print('*' * 10)
-    # print(info)
-    # print('*' * 10)
-
+    
     print('*' * 10)
-    for time_key, time_value in info['time_info'].items():
-        print(time_key, time_value, type(time_key), type(time_value))
+    print(info)
     print('*' * 10)
 
     rec_list = predict.main(info)

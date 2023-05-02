@@ -82,6 +82,22 @@ def clear_text(key: str):
     st.session_state[key] = ""
 
 
+@st.cache_data(show_spinner='Wait...')
+def get_query_info(data):
+    meta = requests.post(url='http://141.223.163.115:8000/query/', json=data).json()
+    default_lat = meta['lat']
+    default_lng = meta['lng']
+    address = meta['address']
+    place_name = meta['place_name']
+    address = f"{address} ({place_name})"
+    
+    return default_lat, default_lng, address
+
+
+@st.cache_data(show_spinner='Wait...')
+def get_address(data):
+    return requests.post(url='http://141.223.163.115:8000/coord/', json=data).json()
+
 def get_location(cookie_manager):
     st.write("위치")
     col_cur, col_query = st.columns(2)
@@ -112,12 +128,7 @@ def get_location(cookie_manager):
             # 'key': st.secrets["KakaoAK"]
         }
         try:
-            meta = requests.post(url='http://141.223.163.115:8000/query/', json=data).json()
-            default_lat = meta['lat']
-            default_lng = meta['lng']
-            address = meta['address']
-            place_name = meta['place_name']
-            address = f"{address} ({place_name})"
+            default_lat, default_lng, address = get_query_info(data)
         except:
             st.write("주소를 다시 입력해주세요.")
     
@@ -125,10 +136,8 @@ def get_location(cookie_manager):
         data = {
             'lat': default_lat,
             'lng': default_lng,
-            # 'key': st.secrets["KakaoAK"]
         }
-
-        address = requests.post(url='http://141.223.163.115:8000/coord/', json=data).json()
+        address = get_address(data)
 
     with col_lat:
         lat = st.number_input(
