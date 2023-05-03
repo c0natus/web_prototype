@@ -24,7 +24,7 @@ def notification():
 
 
 def user_select():
-    user_list = ['사용자 선택', 'CHW_MyCar',  'HSK_MyCar', 'JJK', 'KBH', 'KHY', 'KYJ', 'LHS', 'MJH', 'MJH_MyCar', 'OSM']
+    user_list = ['사용자 선택', 'CHW_MyCar',  'HSK_MyCar', 'JJK', 'KBH', 'KHY', 'KYJ', 'LHS', 'MJH', 'MJH_MyCar', 'OSM', 'OSM_MyCar']
     
     user = st.selectbox(
         label='user_select', 
@@ -97,6 +97,7 @@ def get_query_info(data):
 @st.cache_data(show_spinner='Wait...')
 def get_address(data):
     return requests.post(url='http://141.223.163.115:8000/coord/', json=data).json()
+
 
 def get_location(cookie_manager):
     st.write("위치")
