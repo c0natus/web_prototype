@@ -223,8 +223,14 @@ def time_select():
 
 
 def main():
+    # Cookie_manager는 현재 위치, 사용자 이름, 알고리즘 등 선택사항을 
+    # 하위 page에 전달하기 위해 필요합니다.
     cookie_manager = init_setting()
+
+    # 해당 부분은 Page의 제일 윗부분으로 제목을 나타냅니다.
     st.title("개인화 POI 추천 알고리즘 PoC")
+
+    # 공지사항 버튼을 클릭하면, 공지사항을 알려주는 page로 이동합니다.
     notification()
     
     user = user_select()

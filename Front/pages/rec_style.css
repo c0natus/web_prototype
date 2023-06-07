@@ -2,6 +2,10 @@
     display: none;
 }
 
+[data-testid="stToolbar"] {
+    display: none
+}
+
 /* st.button */
 div.row-widget.stButton > button {
     width: 150px;
